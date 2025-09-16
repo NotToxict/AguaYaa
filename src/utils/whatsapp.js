@@ -1,58 +1,25 @@
-import { BUSINESS_PHONE, STORE_NAME } from '../config/app';
+import { formatCurrency } from './format';
 
-export const buildWhatsAppLink = (cartItems, customerInfo, deliveryInfo, storeInfo) => {
-  // Format cart items
-  const itemsList = cartItems.map(item => {
-    const sizeText = item.size ? ` (${item.size})` : '';
-    const itemTotal = item.price * item.quantity;
-    return `• ${item.quantity}x ${item.name}${sizeText} - ${formatPrice(itemTotal)}`;
-  }).join('\n');
+export function buildWhatsAppLink({ items, subtotal, phone = '0000000000', store = 'AguaYa', locale = 'es-MX', currency = 'MXN', customer }) {
+  const lines = [];
+  lines.push(`Hola ${store}, quiero hacer un pedido:`);
+  items.forEach((it) => {
+    lines.push(`• ${it.qty} x ${it.name}${it.size ? ' - ' + it.size : ''} (${formatCurrency(it.price, locale, currency)} c/u)`);
+  });
+  lines.push(`Subtotal: ${formatCurrency(subtotal, locale, currency)}`);
+  if (customer) {
+    const { name, phone: cphone, address, notes, slot } = customer;
+    lines.push('');
+    lines.push('Datos de entrega:');
+    if (name) lines.push(`• Nombre: ${name}`);
+    if (cphone) lines.push(`• Tel: ${cphone}`);
+    if (address) lines.push(`• Dirección: ${address}`);
+    if (slot) lines.push(`• Horario: ${slot}`);
+    if (notes) lines.push(`• Notas: ${notes}`);
+  }
+  lines.push('');
+  lines.push('¿Está disponible para entrega?');
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const deliveryFee = storeInfo?.deliveryFee || 0;
-  const total = subtotal + deliveryFee;
-
-  // Build message
-  const message = [
-    `🛒 *Nuevo pedido - ${STORE_NAME}*`,
-    '',
-    `📍 *Tienda:* ${storeInfo?.name || 'N/A'}`,
-    '',
-    `🛍️ *Productos:*`,
-    itemsList,
-    '',
-    `💰 *Resumen:*`,
-    `Subtotal: ${formatPrice(subtotal)}`,
-    `Envío: ${formatPrice(deliveryFee)}`,
-    `*Total: ${formatPrice(total)}*`,
-    '',
-    `👤 *Datos del cliente:*`,
-    customerInfo.customerName ? `Nombre: ${customerInfo.customerName}` : '',
-    customerInfo.customerPhone ? `Teléfono: ${customerInfo.customerPhone}` : '',
-    '',
-    `🚚 *Entrega:*`,
-    `Dirección: ${deliveryInfo.address || 'No especificada'}`,
-    `Horario: ${deliveryInfo.deliveryTime || 'Lo antes posible'}`,
-    customerInfo.notes ? `Notas: ${customerInfo.notes}` : '',
-    '',
-    '¿Está disponible para entrega?'
-  ].filter(line => line !== '').join('\n');
-
-  // Create WhatsApp URL
-  const encodedMessage = encodeURIComponent(message);
-  return `https://wa.me/${BUSINESS_PHONE}?text=${encodedMessage}`;
-};
-
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0
-  }).format(price);
-};
-
-export const openWhatsApp = (cartItems, customerInfo, deliveryInfo, storeInfo) => {
-  const link = buildWhatsAppLink(cartItems, customerInfo, deliveryInfo, storeInfo);
-  window.open(link, '_blank');
-};
+  const text = encodeURIComponent(lines.join('\n'));
+  return `https://wa.me/${phone}?text=${text}`;
+}

@@ -1,86 +1,56 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+const UIContext = createContext(null);
 const STORAGE_KEY = 'aguaya_ui_v1';
 
-const UIContext = createContext();
+export function UIProvider({ children }) {
+  const [address, setAddress] = useState('');
+  const [slot, setSlot] = useState('Lo antes posible');
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
 
-export const useUI = () => {
-  const context = useContext(UIContext);
-  if (!context) {
-    throw new Error('useUI must be used within a UIProvider');
-  }
-  return context;
-};
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
-const defaultUIState = {
-  address: '',
-  deliveryTime: '',
-  customerName: '',
-  customerPhone: '',
-  notes: ''
-};
-
-export const UIProvider = ({ children }) => {
-  const [uiState, setUIState] = useState(defaultUIState);
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-
-  // Load UI state from localStorage on mount
+  // Carga persistida
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setUIState({ ...defaultUIState, ...parsed });
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.address) setAddress(parsed.address);
+        if (parsed?.slot) setSlot(parsed.slot);
       }
-    } catch (error) {
-      console.error('Error loading UI state from localStorage:', error);
-    }
+    } catch {}
   }, []);
 
-  // Save UI state to localStorage whenever it changes
+  // Persistencia
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(uiState));
-    } catch (error) {
-      console.error('Error saving UI state to localStorage:', error);
-    }
-  }, [uiState]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ address, slot }));
+    } catch {}
+  }, [address, slot]);
 
-  const updateAddress = (address) => {
-    setUIState(prev => ({ ...prev, address }));
-  };
+  const value = useMemo(
+    () => ({
+      address,
+      setAddress,
+      slot,
+      setSlot,
+      addressDialogOpen,
+      openAddressDialog: () => setAddressDialogOpen(true),
+      closeAddressDialog: () => setAddressDialogOpen(false),
 
-  const updateDeliveryTime = (deliveryTime) => {
-    setUIState(prev => ({ ...prev, deliveryTime }));
-  };
-
-  const updateCustomerInfo = (info) => {
-    setUIState(prev => ({ ...prev, ...info }));
-  };
-
-  const openAddressDialog = () => {
-    setIsAddressDialogOpen(true);
-  };
-
-  const closeAddressDialog = () => {
-    setIsAddressDialogOpen(false);
-  };
-
-  const value = {
-    ...uiState,
-    updateAddress,
-    updateDeliveryTime,
-    updateCustomerInfo,
-    isAddressDialogOpen,
-    openAddressDialog,
-    closeAddressDialog,
-    hasAddress: !!uiState.address,
-    hasDeliveryTime: !!uiState.deliveryTime
-  };
-
-  return (
-    <UIContext.Provider value={value}>
-      {children}
-    </UIContext.Provider>
+      quickViewProduct,
+      openQuickView: (product) => setQuickViewProduct(product),
+      closeQuickView: () => setQuickViewProduct(null),
+    }),
+    [address, slot, addressDialogOpen, quickViewProduct]
   );
-};
+
+  return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
+}
+
+export function useUI() {
+  const ctx = useContext(UIContext);
+  if (!ctx) throw new Error('useUI must be used within UIProvider');
+  return ctx;
+}

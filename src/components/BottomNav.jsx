@@ -1,84 +1,44 @@
 import React from 'react';
-import {
-  BottomNavigation,
-  BottomNavigationAction,
-  Paper
-} from '@mui/material';
-import {
-  Home as HomeIcon,
-  Store as StoreIcon,
-  ListAlt as OrdersIcon,
-  Phone as ContactIcon
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import ContactSupportIcon from '@mui/icons-material/ContactSupport';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-function BottomNav() {
-  const navigate = useNavigate();
+export default function BottomNav() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const getRouteValue = (pathname) => {
-    if (pathname === '/') return 0;
-    if (pathname === '/catalog' || pathname === '/stores') return 1;
-    if (pathname === '/orders') return 2;
-    if (pathname === '/contact') return 3;
-    return 0;
-  };
-
-  const handleChange = (event, newValue) => {
-    switch (newValue) {
-      case 0:
-        navigate('/');
-        break;
-      case 1:
-        navigate('/catalog');
-        break;
-      case 2:
-        navigate('/orders');
-        break;
-      case 3:
-        navigate('/contact');
-        break;
-      default:
-        break;
-    }
-  };
+  const current = (() => {
+    if (location.pathname.startsWith('/catalog')) return '/catalog';
+    if (location.pathname.startsWith('/orders')) return '/orders';
+    if (location.pathname.startsWith('/contact')) return '/contact';
+    return '/';
+  })();
 
   return (
-    <Paper 
-      sx={{ 
-        position: 'fixed', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        zIndex: 1000,
-        display: { xs: 'block', md: 'none' } // Only show on mobile
-      }} 
+    <Paper
       elevation={8}
+      sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: { xs: 'block', md: 'none' },
+        zIndex: (t) => t.zIndex.appBar,
+      }}
     >
       <BottomNavigation
-        value={getRouteValue(location.pathname)}
-        onChange={handleChange}
+        value={current}
+        onChange={(_, val) => navigate(val)}
         showLabels
       >
-        <BottomNavigationAction
-          label="Inicio"
-          icon={<HomeIcon />}
-        />
-        <BottomNavigationAction
-          label="Catálogo"
-          icon={<StoreIcon />}
-        />
-        <BottomNavigationAction
-          label="Pedidos"
-          icon={<OrdersIcon />}
-        />
-        <BottomNavigationAction
-          label="Contacto"
-          icon={<ContactIcon />}
-        />
+        <BottomNavigationAction label="Inicio" value="/" icon={<HomeIcon />} />
+        <BottomNavigationAction label="Catálogo" value="/catalog" icon={<StorefrontIcon />} />
+        <BottomNavigationAction label="Pedidos" value="/orders" icon={<ReceiptLongIcon />} />
+        <BottomNavigationAction label="Contacto" value="/contact" icon={<ContactSupportIcon />} />
       </BottomNavigation>
     </Paper>
   );
 }
-
-export default BottomNav;

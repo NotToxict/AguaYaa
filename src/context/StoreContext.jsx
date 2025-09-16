@@ -1,64 +1,43 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import stores, { getStoreById } from '../data/stores';
 
+const StoreContext = createContext(null);
 const STORAGE_KEY = 'aguaya_store_v1';
 
-const StoreContext = createContext();
+export function StoreProvider({ children }) {
+  const [storeId, setStoreId] = useState(null);
 
-export const useStore = () => {
-  const context = useContext(StoreContext);
-  if (!context) {
-    throw new Error('useStore must be used within a StoreProvider');
-  }
-  return context;
-};
-
-export const StoreProvider = ({ children }) => {
-  const [selectedStore, setSelectedStore] = useState(null);
-
-  // Load store from localStorage on mount
+  // Cargar selección persistida
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setSelectedStore(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading store from localStorage:', error);
-    }
+      if (saved) setStoreId(saved);
+    } catch {}
   }, []);
 
-  // Save store to localStorage whenever it changes
+  // Persistir cambios
   useEffect(() => {
     try {
-      if (selectedStore) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedStore));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch (error) {
-      console.error('Error saving store to localStorage:', error);
-    }
-  }, [selectedStore]);
+      if (storeId) localStorage.setItem(STORAGE_KEY, storeId);
+    } catch {}
+  }, [storeId]);
 
-  const selectStore = (store) => {
-    setSelectedStore(store);
-  };
+  const value = useMemo(() => {
+    const store = storeId ? getStoreById(storeId) : null;
+    return {
+      stores,
+      storeId,
+      store,
+      setStoreId,
+      clearStore: () => setStoreId(null),
+    };
+  }, [storeId]);
 
-  const clearStore = () => {
-    setSelectedStore(null);
-  };
+  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+}
 
-  const value = {
-    selectedStore,
-    selectStore,
-    clearStore,
-    hasStore: !!selectedStore
-  };
-
-  return (
-    <StoreContext.Provider value={value}>
-      {children}
-    </StoreContext.Provider>
-  );
-};
+export function useStore() {
+  const ctx = useContext(StoreContext);
+  if (!ctx) throw new Error('useStore must be used within StoreProvider');
+  return ctx;
+}

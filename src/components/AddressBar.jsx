@@ -1,72 +1,33 @@
 import React from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Chip,
-  IconButton
-} from '@mui/material';
-import {
-  LocationOn as LocationIcon,
-  AccessTime as TimeIcon,
-  Edit as EditIcon
-} from '@mui/icons-material';
+import { Box, Chip, Container, Typography } from '@mui/material';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useUI } from '../context/UIContext';
 
-function AddressBar() {
-  const { 
-    address, 
-    deliveryTime, 
-    hasAddress, 
-    hasDeliveryTime, 
-    openAddressDialog 
-  } = useUI();
+export default function AddressBar() {
+  const { address, slot, openAddressDialog } = useUI();
 
   return (
-    <Paper 
-      elevation={1} 
-      sx={{ 
-        px: 2, 
-        py: 1.5, 
-        mx: 2, 
-        mt: 1,
-        mb: 2,
-        borderRadius: 2,
-        cursor: 'pointer',
-        '&:hover': {
-          backgroundColor: 'action.hover'
-        }
-      }}
-      onClick={openAddressDialog}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <LocationIcon color="primary" />
-        
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="body2" color="text.secondary">
+    <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
+      <Container maxWidth="lg" sx={{ py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <LocationOnIcon color="primary" />
+        <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={openAddressDialog}>
+          <Typography variant="caption" color="text.secondary" noWrap>
             Entregar en
           </Typography>
-          <Typography variant="body1" sx={{ fontWeight: 500 }}>
-            {hasAddress ? address : 'Agregar dirección'}
+          <Typography variant="subtitle2" noWrap>
+            {address || 'Ingresa tu dirección'}
           </Typography>
         </Box>
-
-        {hasDeliveryTime && (
-          <Chip
-            icon={<TimeIcon />}
-            label={deliveryTime}
-            size="small"
-            variant="outlined"
-            color="primary"
-          />
-        )}
-
-        <IconButton size="small" color="primary">
-          <EditIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    </Paper>
+        <Chip
+          variant="outlined"
+          size="small"
+          onClick={openAddressDialog}
+          icon={<ExpandMoreIcon />}
+          label={slot || 'Lo antes posible'}
+          sx={{ borderRadius: 1.5 }}
+        />
+      </Container>
+    </Box>
   );
 }
-
-export default AddressBar;

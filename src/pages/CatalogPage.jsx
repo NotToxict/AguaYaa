@@ -1,144 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Grid,
-  Box,
-  Alert,
-  Button,
-  Chip
-} from '@mui/material';
-import {
-  Store as StoreIcon,
-  ShoppingBasket as CatalogIcon
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
-import { getProductsByStoreId } from '../data/stores';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Container, Grid, Typography, TextField, InputAdornment, Alert, Link as MLink } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import ProductQuickView from '../components/ProductQuickView';
+import { useStore } from '../context/StoreContext';
 
-function CatalogPage() {
+export default function CatalogPage() {
+  const [q, setQ] = useState('');
+  const { store } = useStore();
   const navigate = useNavigate();
-  const { selectedStore } = useStore();
-  const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-  // Redirect to stores if no store selected
   useEffect(() => {
-    if (!selectedStore) {
-      navigate('/stores');
-      return;
-    }
+    if (!store) navigate('/stores');
+  }, [store, navigate]);
 
-    // Load products for selected store
-    const storeProducts = getProductsByStoreId(selectedStore.id);
-    setProducts(storeProducts);
-  }, [selectedStore, navigate]);
+  const products = store?.products || [];
 
-  const handleProductQuickView = (product) => {
-    setSelectedProduct(product);
-    setQuickViewOpen(true);
-  };
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return products;
+    return products.filter((p) =>
+      [p.name, p.size].filter(Boolean).some((t) => t.toLowerCase().includes(term))
+    );
+  }, [q, products]);
 
-  const handleCloseQuickView = () => {
-    setQuickViewOpen(false);
-    setSelectedProduct(null);
-  };
-
-  // Don't render if no store (will redirect)
-  if (!selectedStore) {
-    return null;
-  }
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
+  if (!store) return null;
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 3 }}>
-        {/* Store Header */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <StoreIcon color="primary" />
-            <Typography variant="h5" component="h1">
-              {selectedStore.name}
-            </Typography>
-          </Box>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            {selectedStore.description}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Chip
-              label={`⭐ ${selectedStore.rating}`}
-              size="small"
-              variant="outlined"
-            />
-            <Chip
-              label={`🕒 ${selectedStore.etaMin} min`}
-              size="small"
-              variant="outlined"
-            />
-            <Chip
-              label={`🚚 ${formatPrice(selectedStore.deliveryFee)}`}
-              size="small"
-              variant="outlined"
-            />
-          </Box>
-        </Box>
+    <Container maxWidth="lg" sx={{ mt: 3, mb: { xs: 10, md: 6 } }}>
+      <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
+        {store.name}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Entrega aprox. {store.etaMin} min • Envío ${store.deliveryFee} • <MLink component={RouterLink} to="/stores">Cambiar de tienda</MLink>
+      </Typography>
 
-        {/* Products Section */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <CatalogIcon color="primary" />
-            <Typography variant="h6">
-              Productos disponibles
-            </Typography>
-          </Box>
-
-          {products.length === 0 ? (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <Typography variant="body1">
-                Esta tienda no tiene productos disponibles en este momento.
-              </Typography>
-              <Button 
-                variant="outlined" 
-                onClick={() => navigate('/stores')}
-                sx={{ mt: 1 }}
-              >
-                Cambiar de tienda
-              </Button>
-            </Alert>
-          ) : (
-            <Grid container spacing={2}>
-              {products.map((product) => (
-                <Grid key={product.id} xs={12} sm={6} md={4} lg={3}>
-                  <ProductCard 
-                    product={product} 
-                    onQuickView={handleProductQuickView}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
-      </Box>
-
-      {/* Product Quick View */}
-      <ProductQuickView
-        product={selectedProduct}
-        open={quickViewOpen}
-        onClose={handleCloseQuickView}
+      <TextField
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar agua, garrafones, packs…"
+        fullWidth
+        size="small"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2 }}
       />
+
+      {filtered.length === 0 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          No encontramos productos que coincidan con “{q}”.
+        </Alert>
+      )}
+
+      <Grid container spacing={2}>
+        {filtered.map((p) => {
+          const withStore = { ...p, storeId: store.id };
+          return (
+            <Grid item key={p.id} xs={12} sm={6} md={4} lg={3}>
+              <ProductCard product={withStore} />
+            </Grid>
+          );
+        })}
+      </Grid>
     </Container>
   );
 }
-
-export default CatalogPage;

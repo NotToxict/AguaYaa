@@ -1,92 +1,90 @@
 import React from 'react';
+import { Link as RouterLink, NavLink } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
   Typography,
-  Chip,
+  Button,
   Box,
   IconButton,
-  Badge
+  Badge,
+  Chip,
 } from '@mui/material';
-import {
-  Store as StoreIcon,
-  ShoppingCart as CartIcon
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import { useCart } from '../context/CartContext';
+import { useStore } from '../context/StoreContext';
 
-function NavBar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { selectedStore } = useStore();
-  const { getTotalItems } = useCart();
+const linkSx = {
+  color: 'inherit',
+  textTransform: 'none',
+  '&.active': { textDecoration: 'underline' },
+};
 
-  const handleStoreClick = () => {
-    navigate('/stores');
-  };
-
-  const handleCartClick = () => {
-    navigate('/cart');
-  };
-
-  const handleHomeClick = () => {
-    navigate('/');
-  };
-
-  const isCartPage = location.pathname === '/cart';
+export default function NavBar() {
+  const { count } = useCart();
+  const { store } = useStore();
 
   return (
-    <AppBar position="sticky" elevation={1}>
+    <AppBar position="static" color="primary" enableColorOnDark>
       <Toolbar>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            flexGrow: 1, 
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-          onClick={handleHomeClick}
+        <Typography
+          variant="h6"
+          component={RouterLink}
+          to="/"
+          sx={{ color: 'inherit', textDecoration: 'none', fontWeight: 700 }}
         >
           AguaYa
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* Store Chip */}
-          <Chip
-            icon={<StoreIcon />}
-            label={selectedStore ? selectedStore.name : 'Elegir tienda'}
-            onClick={handleStoreClick}
-            variant={selectedStore ? 'filled' : 'outlined'}
-            color={selectedStore ? 'secondary' : 'default'}
-            sx={{
-              color: selectedStore ? 'white' : 'inherit',
-              borderColor: selectedStore ? 'secondary.main' : 'rgba(255,255,255,0.5)',
-              '&:hover': {
-                backgroundColor: selectedStore ? 'secondary.dark' : 'rgba(255,255,255,0.1)'
-              }
-            }}
-          />
+        <Box sx={{ flexGrow: 1 }} />
 
-          {/* Cart Icon - Hidden on xs/sm (mobile) since we have FloatingCartFab */}
-          {!isCartPage && (
-            <IconButton
-              color="inherit"
-              onClick={handleCartClick}
-              sx={{ 
-                display: { xs: 'none', md: 'inline-flex' }
-              }}
-            >
-              <Badge badgeContent={getTotalItems()} color="error">
-                <CartIcon />
-              </Badge>
-            </IconButton>
-          )}
+        {/* Tienda actual (atajo a /stores) */}
+        <Chip
+          component={RouterLink}
+          to="/stores"
+          clickable
+          icon={<StorefrontIcon sx={{ color: 'inherit' }} />}
+          label={store ? store.name : 'Elegir tienda'}
+          sx={{
+            mr: 2,
+            color: 'inherit',
+            borderColor: 'rgba(255,255,255,0.6)',
+            '& .MuiChip-icon': { color: 'inherit' },
+          }}
+          variant="outlined"
+        />
+
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, mr: 1 }}>
+          <Button component={NavLink} to="/" sx={linkSx}>
+            Inicio
+          </Button>
+          <Button component={NavLink} to="/stores" sx={linkSx}>
+            Tiendas
+          </Button>
+          <Button component={NavLink} to="/catalog" sx={linkSx}>
+            Catálogo
+          </Button>
+          <Button component={NavLink} to="/orders" sx={linkSx}>
+            Mis pedidos
+          </Button>
+          <Button component={NavLink} to="/contact" sx={linkSx}>
+            Contacto
+          </Button>
         </Box>
+
+        <IconButton
+          component={RouterLink}
+          to="/cart"
+          size="large"
+          color="inherit"
+          aria-label="Carrito"
+        >
+          <Badge badgeContent={count} color="secondary">
+            <ShoppingCartOutlinedIcon />
+          </Badge>
+        </IconButton>
       </Toolbar>
     </AppBar>
   );
 }
-
-export default NavBar;

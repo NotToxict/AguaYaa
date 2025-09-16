@@ -1,51 +1,15 @@
 import React from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Link
-} from '@mui/material';
+import { Box, Container, Typography, Link } from '@mui/material';
 
-function Footer() {
+export default function Footer() {
   return (
-    <Box
-      component="footer"
-      sx={{
-        bgcolor: 'background.paper',
-        borderTop: 1,
-        borderColor: 'divider',
-        py: 3,
-        mt: 'auto',
-        // Add bottom padding on mobile to account for BottomNav
-        pb: { xs: 10, md: 3 }
-      }}
-    >
+    <Box component="footer" sx={{ mt: 8, py: 4, bgcolor: 'grey.100' }}>
       <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            AguaYa
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Tu app de delivery de agua favorita
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            © 2024 AguaYa. Todos los derechos reservados.
-          </Typography>
-          <Box sx={{ mt: 2 }}>
-            <Link href="/contact" color="primary" sx={{ mx: 1 }}>
-              Contacto
-            </Link>
-            <Link href="#" color="primary" sx={{ mx: 1 }}>
-              Términos
-            </Link>
-            <Link href="#" color="primary" sx={{ mx: 1 }}>
-              Privacidad
-            </Link>
-          </Box>
-        </Box>
+        <Typography variant="body2" color="text.secondary">
+          © {new Date().getFullYear()} AguaYa • Atención: Lun–Sáb 8:00–20:00 •
+          WhatsApp: <Link href="https://wa.me/0000000000" target="_blank" rel="noreferrer">Chatea con nosotros</Link>
+        </Typography>
       </Container>
     </Box>
   );
 }
-
-export default Footer;

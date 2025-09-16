@@ -1,135 +1,82 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
-  CardMedia,
   CardContent,
+  CardActions,
+  CardMedia,
+  Button,
   Typography,
-  Chip,
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button
+  CardActionArea,
 } from '@mui/material';
 import { useCart } from '../context/CartContext';
+import { formatCurrency } from '../utils/format';
+import { useUI } from '../context/UIContext';
 
-function ProductCard({ product, onQuickView }) {
-  const { hasItemsFromDifferentStore, clearCart, addItem } = useCart();
-  const [confirmDialog, setConfirmDialog] = useState(false);
+export default function ProductCard({ product }) {
+  const { addItem, items, clear } = useCart();
+  const { openQuickView } = useUI();
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
-  const handleCardClick = () => {
-    // Check if adding this product would create a store conflict
-    if (hasItemsFromDifferentStore(product.storeId)) {
-      setConfirmDialog(true);
-    } else {
-      // No conflict, open quick view
-      onQuickView(product);
+  const handleAdd = () => {
+    if (items.length > 0) {
+      const currentStore = items[0].storeId;
+      if (currentStore && currentStore !== product.storeId) {
+        const ok = window.confirm('Tu carrito pertenece a otra tienda. Cambiar de tienda vaciará tu carrito. ¿Continuar?');
+        if (!ok) return;
+        clear();
+      }
     }
+    addItem(product);
   };
 
-  const handleConfirmStoreChange = () => {
-    clearCart();
-    setConfirmDialog(false);
-    onQuickView(product);
-  };
-
-  const handleCancelStoreChange = () => {
-    setConfirmDialog(false);
+  const handleOpenQuick = () => {
+    // Pasamos el producto con storeId para que el QuickView lo respete
+    openQuickView(product);
   };
 
   return (
-    <>
-      <Card 
-        sx={{ 
-          height: '100%',
-          cursor: 'pointer',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: 3
-          },
-          transition: 'all 0.2s'
-        }}
-        onClick={handleCardClick}
-      >
+    <Card>
+      <CardActionArea onClick={handleOpenQuick}>
         <CardMedia
-          component="img"
-          height="160"
-          image={product.image}
-          alt={product.name}
-          sx={{ objectFit: 'cover' }}
-        />
-        
+          component="div"
+          sx={{
+            height: 140,
+            bgcolor: 'primary.light',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'primary.contrastText',
+            fontWeight: 700,
+          }}
+        >
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            product.size ?? product.name
+          )}
+        </CardMedia>
         <CardContent>
-          <Typography variant="h6" component="h3" gutterBottom>
+          <Typography variant="subtitle1" fontWeight={600}>
             {product.name}
           </Typography>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {product.description}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-              {formatPrice(product.price)}
+          {product.size && (
+            <Typography variant="body2" color="text.secondary">
+              {product.size}
             </Typography>
-            
-            {product.sizes && product.sizes.length > 0 && (
-              <Chip 
-                label={product.sizes[0]} 
-                size="small" 
-                variant="outlined"
-              />
-            )}
-          </Box>
-          
-          {!product.available && (
-            <Chip 
-              label="No disponible" 
-              size="small" 
-              color="error" 
-              sx={{ mt: 1 }}
-            />
           )}
-        </CardContent>
-      </Card>
-
-      {/* Store Change Confirmation Dialog */}
-      <Dialog
-        open={confirmDialog}
-        onClose={handleCancelStoreChange}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Cambiar de tienda</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Este producto es de una tienda diferente. Cambiar vaciará tu carrito actual. ¿Deseas continuar?
+          <Typography variant="h6" sx={{ mt: 1 }}>
+            {formatCurrency(product.price)}
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelStoreChange}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleConfirmStoreChange} 
-            variant="contained"
-            color="primary"
-          >
-            Continuar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+        </CardContent>
+      </CardActionArea>
+      <CardActions>
+        <Button variant="contained" size="small" onClick={handleAdd}>
+          Agregar
+        </Button>
+      </CardActions>
+    </Card>
   );
 }
-
-export default ProductCard;

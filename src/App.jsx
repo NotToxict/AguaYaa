@@ -1,49 +1,31 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Box } from '@mui/material';
-import { StoreProvider } from './context/StoreContext';
 import { CartProvider } from './context/CartContext';
 import { UIProvider } from './context/UIContext';
+import { StoreProvider } from './context/StoreContext';
 import NavBar from './components/NavBar';
 import AddressBar from './components/AddressBar';
 import AddressDialog from './components/AddressDialog';
 import ProductQuickView from './components/ProductQuickView';
-import FloatingCartFab from './components/FloatingCartFab';
 import BottomNav from './components/BottomNav';
+import FloatingCartFab from './components/FloatingCartFab';
 import Footer from './components/Footer';
 
-function App() {
+export default function App() {
   return (
     <StoreProvider>
-      <CartProvider>
-        <UIProvider>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '100vh'
-            }}
-          >
-            <NavBar />
-            <AddressBar />
-            
-            <Box component="main" sx={{ flexGrow: 1 }}>
-              <Outlet />
-            </Box>
-            
-            <Footer />
-            
-            {/* Mobile Components */}
-            <FloatingCartFab />
-            <BottomNav />
-            
-            {/* Dialogs and Overlays */}
-            <AddressDialog />
-          </Box>
-        </UIProvider>
-      </CartProvider>
+      <UIProvider>
+        <CartProvider>
+          <NavBar />
+          <AddressBar />
+          <Outlet />
+          <ProductQuickView />
+          <AddressDialog />
+          <FloatingCartFab />
+          <BottomNav />
+          <Footer />
+        </CartProvider>
+      </UIProvider>
     </StoreProvider>
   );
 }
-
-export default App;
