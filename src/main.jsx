@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 import App from './App.jsx';
+import HomePage from './pages/HomePage.jsx';
 import './index.css';
 
 // 1. Definimos un tema básico para Material-UI
@@ -26,8 +27,7 @@ const router = createBrowserRouter([
     element: <App />,
     // Aquí añadiremos las páginas (rutas hijas) más adelante
     children: [
-      // Ejemplo: { path: '/', element: <HomePage /> },
-      // Ejemplo: { path: '/login', element: <LoginPage /> },
+      { index: true, element: <HomePage /> },
     ],
   },
 ]);
