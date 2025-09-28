@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-// IMPORTAR createHashRouter en lugar de createBrowserRouter
-import { createHashRouter, RouterProvider, Navigate } from "react-router-dom"; 
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 import "./index.css";
 
@@ -11,9 +10,7 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { UIProvider } from "./context/UIContext.jsx";
 import { StoreProvider } from "./context/StoreContext.jsx";
-// Contexto de Autenticación y Protección de Rutas
 import { AuthProvider, ProtectedRoute } from "./context/AuthContext.jsx";
-
 
 // PÁGINAS DE CLIENTE
 import HomePage from "./pages/HomePage.jsx";
@@ -25,80 +22,97 @@ import ContactPage from "./pages/ContactPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
-// PÁGINAS DE AUTENTICACIÓN
+// PÁGINAS DE ADMINISTRACIÓN
 import LoginPage from "./pages/auth/LoginPage.jsx";
-
-// PÁGINAS DE LOCAL
 import LocalDashboardPage from "./pages/local/LocalDashboardPage.jsx";
 import LocalProductsPage from "./pages/local/LocalProductsPage.jsx";
-
-// PÁGINAS DE REPARTIDOR
 import DeliveryDashboardPage from "./pages/delivery/DeliveryDashboardPage.jsx";
 
-
-// Usamos createHashRouter y eliminamos el basename
-const router = createHashRouter([
-  // RUTA PRINCIPAL (CLIENTE)
-  {
-    path: "/",
-    element: <RootLayout />,
-    errorElement: <NotFoundPage />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: "stores", element: <StoresPage /> },
-      { path: "catalog", element: <CatalogPage /> },
-      { path: "orders", element: <OrdersPage /> },
-      { path: "contact", element: <ContactPage /> },
-      { path: "cart", element: <CartPage /> },
-      { path: "checkout", element: <CheckoutPage /> },
-      // Fallback si no encuentra ninguna ruta
-      { path: "*", element: <NotFoundPage /> }, 
-    ],
-  },
-  
-  // RUTAS DE AUTENTICACIÓN
-  { path: "login", element: <LoginPage /> },
-
-  // RUTAS DEL LOCAL (MARKETPLACE ROLE) - PROTEGIDAS
-  {
-    path: "local",
-    element: <ProtectedRoute element={<AdminLayout />} requiredRole="local" />, 
-    children: [
-      { index: true, element: <LocalDashboardPage /> },
-      { path: "products", element: <LocalProductsPage /> },
-    ],
-  },
-
-  // RUTAS DEL REPARTIDOR (MARKETPLACE ROLE) - PROTEGIDAS
-  {
-    path: "delivery",
-    element: <ProtectedRoute element={<AdminLayout />} requiredRole="delivery" />, 
-    children: [
-      { index: true, element: <DeliveryDashboardPage /> },
-    ],
-  },
-], {
-    // ELIMINAMOS LA PROPIEDAD basename, ya que HashRouter no la necesita
-});
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    {/* TODOS LOS CONTEXTOS DEBEN ENVOLVER A LA APLICACIÓN */}
+// Wrapper de providers QUE VAN DENTRO del Router (para que useNavigate funcione)
+function AppProviders() {
+  return (
     <StoreProvider>
       <UIProvider>
         <CartProvider>
-          {/* El AuthProvider debe envolver al RouterProvider */}
-          <AuthProvider> 
+          <AuthProvider>
             <SnackbarProvider
               maxSnack={3}
               autoHideDuration={2200}
               anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             >
-              <RouterProvider router={router} />
+              <Outlet />
             </SnackbarProvider>
           </AuthProvider>
         </CartProvider>
       </UIProvider>
     </StoreProvider>
+  );
+}
+
+// Basename sincronizado con la base de Vite (quita la barra final si existe)
+const BASENAME =
+  (import.meta.env.BASE_URL && import.meta.env.BASE_URL.replace(/\/$/, "")) ||
+  "";
+
+// Definición de rutas
+const router = createBrowserRouter(
+  [
+    {
+      // Nivel raíz sin path: envuelve toda la app con los providers
+      element: <AppProviders />,
+      children: [
+        // Rutas públicas con el RootLayout
+        {
+          path: "/",
+          element: <RootLayout />,
+          errorElement: <NotFoundPage />,
+          children: [
+            { index: true, element: <HomePage /> },
+            { path: "stores", element: <StoresPage /> },
+            { path: "catalog", element: <CatalogPage /> },
+            { path: "orders", element: <OrdersPage /> },
+            { path: "contact", element: <ContactPage /> },
+            { path: "cart", element: <CartPage /> },
+            { path: "checkout", element: <CheckoutPage /> },
+            { path: "*", element: <NotFoundPage /> },
+          ],
+        },
+
+        // Ruta de autenticación (sin RootLayout si no quieres navbar aquí)
+        { path: "login", element: <LoginPage /> },
+
+        // Rutas protegidas: LOCAL
+        {
+          path: "local",
+          element: (
+            <ProtectedRoute element={<AdminLayout />} requiredRole="local" />
+          ),
+          children: [
+            { index: true, element: <LocalDashboardPage /> },
+            { path: "products", element: <LocalProductsPage /> },
+          ],
+        },
+
+        // Rutas protegidas: DELIVERY
+        {
+          path: "delivery",
+          element: (
+            <ProtectedRoute element={<AdminLayout />} requiredRole="delivery" />
+          ),
+          children: [{ index: true, element: <DeliveryDashboardPage /> }],
+        },
+      ],
+    },
+  ],
+  {
+    // Con tu vite.config actual (base: '/AguaYaa/'), esto hace match con /AguaYaa/...
+    basename: BASENAME,
+  }
+);
+
+// Bootstrap
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
