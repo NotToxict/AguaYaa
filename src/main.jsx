@@ -65,7 +65,7 @@ const router = createBrowserRouter(
         {
           path: "/",
           element: <RootLayout />,
-          errorElement: <NotFoundPage />,
+          // Importante: quitamos el "*" de aquí para que no intercepte /login
           children: [
             { index: true, element: <HomePage /> },
             { path: "stores", element: <StoresPage /> },
@@ -74,11 +74,10 @@ const router = createBrowserRouter(
             { path: "contact", element: <ContactPage /> },
             { path: "cart", element: <CartPage /> },
             { path: "checkout", element: <CheckoutPage /> },
-            { path: "*", element: <NotFoundPage /> },
           ],
         },
 
-        // Ruta de autenticación (sin RootLayout si no quieres navbar aquí)
+        // Ruta de autenticación (sin RootLayout para que no muestre la navbar)
         { path: "login", element: <LoginPage /> },
 
         // Rutas protegidas: LOCAL
@@ -101,11 +100,13 @@ const router = createBrowserRouter(
           ),
           children: [{ index: true, element: <DeliveryDashboardPage /> }],
         },
+
+        // Catch-all GLOBAL (fuera de RootLayout)
+        { path: "*", element: <NotFoundPage /> },
       ],
     },
   ],
   {
-    // Con tu vite.config actual (base: '/AguaYaa/'), esto hace match con /AguaYaa/...
     basename: BASENAME,
   }
 );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
   Box, 
@@ -13,17 +13,18 @@ import {
   IconButton,
   Modal,
   TextField,
+  Chip, // IMPORTANTE: Chip importado
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { formatCurrency } from '../../utils/format'; // Reutilizamos la utilidad de formato
+import { formatCurrency } from '../../utils/format';
 
 // Datos de productos simulados para el local (vendrán de la API)
 const mockProducts = [
-    { id: 'garrafon-20l', name: 'Garrafón 20L', price: 35.00, inventory: 150, status: 'Activo' },
-    { id: 'botella-1l', name: 'Botella 1L', price: 12.00, inventory: 500, status: 'Activo' },
-    { id: 'hielo-5kg', name: 'Hielo 5kg', price: 25.00, inventory: 0, status: 'Agotado' },
+  { id: 'garrafon-20l', name: 'Garrafón 20L', price: 35.00, inventory: 150, status: 'Activo' },
+  { id: 'botella-1l', name: 'Botella 1L', price: 12.00, inventory: 500, status: 'Activo' },
+  { id: 'hielo-5kg', name: 'Hielo 5kg', price: 25.00, inventory: 0, status: 'Agotado' },
 ];
 
 const style = {
@@ -37,15 +38,30 @@ const style = {
   p: 4,
 };
 
-// Componente de Modal para Añadir/Editar Producto
-const ProductModal = ({ open, handleClose, product = {} }) => {
-  const [name, setName] = useState(product.name || '');
-  const [price, setPrice] = useState(product.price || '');
-  const [inventory, setInventory] = useState(product.inventory || 0);
+// Componente de Modal para Añadir/Editar Producto (null-safe)
+const ProductModal = ({ open, handleClose, product }) => {
+  // product puede ser null cuando es “Añadir Producto”
+  const [name, setName] = useState(product?.name ?? '');
+  const [price, setPrice] = useState(product?.price ?? '');
+  const [inventory, setInventory] = useState(product?.inventory ?? 0);
+
+  // Si cambia el producto (por ejemplo, al abrir para editar), sincronizamos el formulario
+  useEffect(() => {
+    setName(product?.name ?? '');
+    setPrice(product?.price ?? '');
+    setInventory(product?.inventory ?? 0);
+  }, [product]);
+
+  const isEditing = Boolean(product?.id);
 
   const handleSubmit = () => {
     // Lógica para enviar los datos a la futura API
-    console.log('Guardando producto:', { name, price, inventory });
+    const payload = { name, price: Number(price), inventory: Number(inventory) };
+    if (isEditing) {
+      console.log('Actualizando producto:', product.id, payload);
+    } else {
+      console.log('Creando producto:', payload);
+    }
     handleClose();
   };
 
@@ -53,7 +69,7 @@ const ProductModal = ({ open, handleClose, product = {} }) => {
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
         <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-          {product.id ? 'Editar Producto' : 'Añadir Nuevo Producto'}
+          {isEditing ? 'Editar Producto' : 'Añadir Nuevo Producto'}
         </Typography>
         <TextField
           label="Nombre del Producto"
@@ -91,15 +107,16 @@ const ProductModal = ({ open, handleClose, product = {} }) => {
   );
 };
 
-
 export default function LocalProductsPage() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Para “Añadir”, seguimos pasando null; el modal ya es null-safe
   const handleOpen = (product = null) => {
     setSelectedProduct(product);
     setOpenModal(true);
   };
+
   const handleClose = () => {
     setOpenModal(false);
     setSelectedProduct(null);
@@ -138,7 +155,10 @@ export default function LocalProductsPage() {
                   {product.name}
                 </TableCell>
                 <TableCell align="right">{formatCurrency(product.price)}</TableCell>
-                <TableCell align="right" color={product.inventory === 0 ? 'error' : 'inherit'}>
+                <TableCell
+                  align="right"
+                  sx={{ color: product.inventory === 0 ? 'error.main' : 'text.primary' }}
+                >
                   {product.inventory}
                 </TableCell>
                 <TableCell>
@@ -163,7 +183,6 @@ export default function LocalProductsPage() {
       </TableContainer>
 
       <ProductModal open={openModal} handleClose={handleClose} product={selectedProduct} />
-
     </Box>
   );
 }
