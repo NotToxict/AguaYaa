@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"; // Importar Navigate
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"; 
 import { SnackbarProvider } from "notistack";
 import "./index.css";
 
@@ -10,7 +10,7 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { UIProvider } from "./context/UIContext.jsx";
 import { StoreProvider } from "./context/StoreContext.jsx";
-// NUEVO: Contexto de Autenticación y Protección de Rutas
+// Contexto de Autenticación y Protección de Rutas
 import { AuthProvider, ProtectedRoute } from "./context/AuthContext.jsx";
 
 
@@ -78,8 +78,8 @@ const router = createBrowserRouter([
     ],
   },
 ], {
-    // Si necesitas especificar el basename para GitHub Pages (aunque ya lo hicimos en vite.config.js):
-    // basename: '/AguaYaa/' 
+    // CRÍTICO: Definición del basename para el despliegue en subdirectorios
+    basename: '/AguaYaa/' 
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
