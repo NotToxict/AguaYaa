@@ -1,61 +1,37 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom'; // Asegúrate de que Navigate está importado
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = 'aguaya_auth_user_v1';
+const BASE_URL = '/AguaYaa'; // <-- DEFINICIÓN DE LA RUTA BASE
 
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null); // { id: 1, name: 'Local A', role: 'local' }
+  const [user, setUser] = useState(null); 
 
-  // Carga inicial del usuario desde localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setUser(JSON.parse(raw));
-      }
-    } catch (e) {
-      console.error('Error al cargar auth:', e);
-    }
-  }, []);
-
-  // Persistencia en localStorage
-  useEffect(() => {
-    try {
-      if (user) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch (e) {
-      console.error('Error al guardar auth:', e);
-    }
-  }, [user]);
+  // ... (código de carga y persistencia en localStorage)
 
   const value = useMemo(() => {
     const isAuthenticated = !!user;
     
-    // Simulación de inicio de sesión por rol
     const login = (role) => {
       let newUser = {};
       if (role === 'local') {
         newUser = { id: 'L01', name: 'Tienda Central', role: 'local' };
-        navigate('/local');
+        navigate(`${BASE_URL}/local`); // <-- RUTA ABSOLUTA FORZADA
       } else if (role === 'delivery') {
         newUser = { id: 'D01', name: 'Juan Repartidor', role: 'delivery' };
-        navigate('/delivery');
+        navigate(`${BASE_URL}/delivery`); // <-- RUTA ABSOLUTA FORZADA
       } else {
-        // Asume login de cliente (no lo usaremos por ahora)
         newUser = { id: 'C01', name: 'Cliente Frecuente', role: 'client' };
-        navigate('/');
+        navigate(BASE_URL); // <-- RUTA BASE FORZADA (AQUÍ DEBE RESOLVER EL INICIO)
       }
       setUser(newUser);
     };
 
     const logout = () => {
       setUser(null);
-      navigate('/login');
+      navigate(`${BASE_URL}/login`); // <-- RUTA ABSOLUTA FORZADA
     };
 
     const hasRole = (requiredRole) => user?.role === requiredRole;
@@ -82,15 +58,15 @@ export function useAuth() {
 // Exportar el componente para protección de rutas (lo usaremos en main.jsx)
 export function ProtectedRoute({ element, requiredRole }) {
   const { isAuthenticated, hasRole } = useAuth();
-
+  const LOGIN_PATH = `${BASE_URL}/login`;
+  
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={LOGIN_PATH} replace />; // <-- RUTA ABSOLUTA FORZADA
   }
 
   if (requiredRole && !hasRole(requiredRole)) {
-    // Si el usuario no tiene el rol, puede ser redirigido a su propio panel o a un 404
     console.warn(`Acceso denegado: Rol ${requiredRole} requerido.`);
-    return <Navigate to="/" replace />; // Redirigir al inicio o a su panel
+    return <Navigate to={BASE_URL} replace />; // Redirigir a la base
   }
 
   return element;

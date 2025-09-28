@@ -57,10 +57,9 @@ const router = createBrowserRouter([
   // RUTAS DE AUTENTICACIÓN
   { path: "login", element: <LoginPage /> },
 
-  // RUTAS DEL LOCAL (MARKETPLACE ROLE) - AHORA PROTEGIDAS
+  // RUTAS DEL LOCAL (MARKETPLACE ROLE) - PROTEGIDAS
   {
     path: "local",
-    // Usa ProtectedRoute y requiere el rol 'local'
     element: <ProtectedRoute element={<AdminLayout />} requiredRole="local" />, 
     children: [
       { index: true, element: <LocalDashboardPage /> },
@@ -68,17 +67,17 @@ const router = createBrowserRouter([
     ],
   },
 
-  // RUTAS DEL REPARTIDOR (MARKETPLACE ROLE) - AHORA PROTEGIDAS
+  // RUTAS DEL REPARTIDOR (MARKETPLACE ROLE) - PROTEGIDAS
   {
     path: "delivery",
-    // Usa ProtectedRoute y requiere el rol 'delivery'
     element: <ProtectedRoute element={<AdminLayout />} requiredRole="delivery" />, 
     children: [
       { index: true, element: <DeliveryDashboardPage /> },
     ],
   },
 ], {
-    // CRÍTICO: Definición del basename para el despliegue en subdirectorios
+    // CORRECCIÓN CRÍTICA: Define la base para el router.
+    // Esto hace que las rutas '/' se interpreten como '/AguaYaa/'
     basename: '/AguaYaa/' 
 });
 
@@ -88,7 +87,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <StoreProvider>
       <UIProvider>
         <CartProvider>
-          {/* CRÍTICO: El AuthProvider debe envolver al RouterProvider */}
+          {/* El AuthProvider debe envolver al RouterProvider */}
           <AuthProvider> 
             <SnackbarProvider
               maxSnack={3}
