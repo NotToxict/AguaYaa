@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"; 
+// IMPORTAR createHashRouter en lugar de createBrowserRouter
+import { createHashRouter, RouterProvider, Navigate } from "react-router-dom"; 
 import { SnackbarProvider } from "notistack";
 import "./index.css";
 
@@ -35,7 +36,8 @@ import LocalProductsPage from "./pages/local/LocalProductsPage.jsx";
 import DeliveryDashboardPage from "./pages/delivery/DeliveryDashboardPage.jsx";
 
 
-const router = createBrowserRouter([
+// Usamos createHashRouter y eliminamos el basename
+const router = createHashRouter([
   // RUTA PRINCIPAL (CLIENTE)
   {
     path: "/",
@@ -76,9 +78,7 @@ const router = createBrowserRouter([
     ],
   },
 ], {
-    // CORRECCIÓN CRÍTICA: Define la base para el router.
-    // Esto hace que las rutas '/' se interpreten como '/AguaYaa/'
-    basename: '/AguaYaa/' 
+    // ELIMINAMOS LA PROPIEDAD basename, ya que HashRouter no la necesita
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
