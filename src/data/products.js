@@ -1,9 +1,6 @@
-const products = [
-  { id: 'garrafon20', name: 'Agua Purificada', size: 'Garrafón 20L', price: 120 },
-  { id: 'bidon12', name: 'Agua Purificada', size: 'Bidón 12L', price: 90 },
-  { id: 'pack6', name: 'Pack Botellas', size: '6 x 2L', price: 150 },
-  { id: 'pack2', name: 'Pack Botellas', size: '6 x 1.5L', price: 130 },
-  { id: 'botella500', name: 'Botella individual', size: '500ml', price: 25 },
+export default [
+  { id: "garrafon-20l", name: "Garrafón 20L", image: "/images/garrafon.jpg", price: 35, oldPrice: 40 },
+  { id: "botella-1l", name: "Botella 1L", image: "/images/botella1l.jpg", price: 12 },
+  { id: "garrafon-10l", name: "Garrafón 10L", image: "/images/garrafon10l.jpg", price: 28 },
+  { id: "hielo-5kg", name: "Hielo 5kg", image: "/images/hielo5kg.jpg", price: 25, oldPrice: 30 },
 ];
-
-export default products;
