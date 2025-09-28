@@ -1,18 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"; // Importar Navigate
+import { SnackbarProvider } from "notistack";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { SnackbarProvider } from "notistack";// Asumiendo que has definido la base en config/app.js si no lo haces con Vite
 
-// Layouts y Contextos
+// LAYOUTS Y CONTEXTOS
 import RootLayout from "./layouts/RootLayout.jsx";
-import AdminLayout from "./layouts/AdminLayout.jsx"; // <-- Nuevo Layout Admin
+import AdminLayout from "./layouts/AdminLayout.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { UIProvider } from "./context/UIContext.jsx";
 import { StoreProvider } from "./context/StoreContext.jsx";
-// IMPORTANTE: Podrías necesitar un AuthProvider aquí en el futuro.
+// NUEVO: Contexto de Autenticación y Protección de Rutas
+import { AuthProvider, ProtectedRoute } from "./context/AuthContext.jsx";
 
-// Páginas de Cliente (Asegúrate de que todas existan en /src/pages/)
+
+// PÁGINAS DE CLIENTE
 import HomePage from "./pages/HomePage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 import StoresPage from "./pages/StoresPage.jsx";
@@ -22,14 +24,14 @@ import ContactPage from "./pages/ContactPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
-// Páginas de Autenticación
-import LoginPage from "./pages/auth/LoginPage.jsx"; // <-- Nueva página de Login
+// PÁGINAS DE AUTENTICACIÓN
+import LoginPage from "./pages/auth/LoginPage.jsx";
 
-// Páginas de Local (Asegúrate de que existan en /src/pages/local/)
+// PÁGINAS DE LOCAL
 import LocalDashboardPage from "./pages/local/LocalDashboardPage.jsx";
 import LocalProductsPage from "./pages/local/LocalProductsPage.jsx";
 
-// Páginas de Repartidor (Asegúrate de que existan en /src/pages/delivery/)
+// PÁGINAS DE REPARTIDOR
 import DeliveryDashboardPage from "./pages/delivery/DeliveryDashboardPage.jsx";
 
 
@@ -55,46 +57,47 @@ const router = createBrowserRouter([
   // RUTAS DE AUTENTICACIÓN
   { path: "login", element: <LoginPage /> },
 
-  // RUTAS DEL LOCAL (MARKETPLACE ROLE)
+  // RUTAS DEL LOCAL (MARKETPLACE ROLE) - AHORA PROTEGIDAS
   {
     path: "local",
-    element: <AdminLayout />, // Usa el layout administrativo
+    // Usa ProtectedRoute y requiere el rol 'local'
+    element: <ProtectedRoute element={<AdminLayout />} requiredRole="local" />, 
     children: [
-      { index: true, element: <LocalDashboardPage /> }, // /local
-      { path: "products", element: <LocalProductsPage /> }, // /local/products
-      // Más rutas: pedidos, reportes, etc.
+      { index: true, element: <LocalDashboardPage /> },
+      { path: "products", element: <LocalProductsPage /> },
     ],
   },
 
-  // RUTAS DEL REPARTIDOR (MARKETPLACE ROLE)
+  // RUTAS DEL REPARTIDOR (MARKETPLACE ROLE) - AHORA PROTEGIDAS
   {
     path: "delivery",
-    element: <AdminLayout />, // Usa el layout administrativo
+    // Usa ProtectedRoute y requiere el rol 'delivery'
+    element: <ProtectedRoute element={<AdminLayout />} requiredRole="delivery" />, 
     children: [
-      { index: true, element: <DeliveryDashboardPage /> }, // /delivery
-      // Más rutas: mapa de ruta, historial de entregas, etc.
+      { index: true, element: <DeliveryDashboardPage /> },
     ],
   },
-
 ], {
-    // CRÍTICO 4: Usar la base de GitHub Pages en el Router (opcional si usas la de Vite)
-    // El base de Vite es suficiente, pero si tu app no funcionara, usarías:
+    // Si necesitas especificar el basename para GitHub Pages (aunque ya lo hicimos en vite.config.js):
     // basename: '/AguaYaa/' 
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* Todos los contextos deben envolver a la aplicación */}
+    {/* TODOS LOS CONTEXTOS DEBEN ENVOLVER A LA APLICACIÓN */}
     <StoreProvider>
       <UIProvider>
         <CartProvider>
-          <SnackbarProvider
-            maxSnack={3}
-            autoHideDuration={2200}
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          >
-            <RouterProvider router={router} />
-          </SnackbarProvider>
+          {/* CRÍTICO: El AuthProvider debe envolver al RouterProvider */}
+          <AuthProvider> 
+            <SnackbarProvider
+              maxSnack={3}
+              autoHideDuration={2200}
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+              <RouterProvider router={router} />
+            </SnackbarProvider>
+          </AuthProvider>
         </CartProvider>
       </UIProvider>
     </StoreProvider>
