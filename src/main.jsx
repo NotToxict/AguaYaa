@@ -2,8 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { SnackbarProvider } from "notistack";
-import { BASE_PATH } from "./config/app"; // Asumiendo que has definido la base en config/app.js si no lo haces con Vite
+import { SnackbarProvider } from "notistack";// Asumiendo que has definido la base en config/app.js si no lo haces con Vite
 
 // Layouts y Contextos
 import RootLayout from "./layouts/RootLayout.jsx";
